@@ -22,6 +22,7 @@ dev = [
     "aiosqlite>=0.22.1",
     "pytest>=9.1.1",
     "pytest-asyncio>=1.4.0",
+    "pytest-env>=1.6.0",
     "ruff>=0.15.20",
     "types-aioboto3-custom",
 ]
@@ -36,3 +37,10 @@ select = ["E", "F", "I", "N"]
 
 [tool.uv.sources]
 types-aioboto3-custom = { path = "vendored/types_aioboto3_custom-15.5.0-py3-none-any.whl" }
+
+[tool.pytest_env]
+DB_URL = "sqlite+aiosqlite:///:memory:"
+VALKEY_URL = "redis://localhost:6379/0"
+MAX_ALLOWED_FILE_SIZE_B = "10485760"
+MAX_ALLOWED_PROJECT_SIZE_B = "104857600"
+SECRET_KEY = "test_secret_key"
