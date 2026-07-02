@@ -32,6 +32,16 @@ jobs:
         run: uv run ruff check app/
 
       - name: Run Test Suite
+        env:
+          PYTHONPATH: .
+          SECRET_KEY: "super_secret_mock_key_for_github_actions"
+          ALGORITHM: "HS256"
+          ACCESS_TOKEN_EXPIRE_MINUTES: 30
+          REFRESH_TOKEN_EXPIRE_DAYS: 7
+          DB_URL: "sqlite+aiosqlite:///:memory:"
+          VALKEY_URL: "redis://localhost:6379/0"
+          MAX_ALLOWED_FILE_SIZE_B: 10485760
+          MAX_ALLOWED_PROJECT_SIZE_B: 104857600
         run: uv run python -m pytest tests/ -vv
 
   build-and-deploy:
