@@ -52,7 +52,7 @@ class TestCreateAccessToken:
         custom_minutes = 10
 
         token = create_access_token(
-            data=payload, ACCESS_TOKEN_EXPIRE_MINUTES=custom_minutes
+            data=payload, access_token_expire_minutes=custom_minutes
         )
         decoded = jwt.decode(
             token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
@@ -163,7 +163,7 @@ class TestCreateRefreshToken:
         custom_days = 14
 
         token = await create_refresh_token(
-            data=payload, valkey=mock_valkey, REFRESH_TOKEN_EXPIRE_DAYS=custom_days
+            data=payload, valkey=mock_valkey, refresh_token_expire_days=custom_days
         )
         decoded = jwt.decode(
             token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
