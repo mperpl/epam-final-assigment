@@ -1,0 +1,84 @@
+name: CI/CD Pipeline
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+
+jobs:
+  quality-assurance:
+    name: Lint & Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: Install dependencies
+        run: uv sync --frozen --group dev
+
+      - name: Run Linter (Ruff)
+        run: uv run ruff check app/
+
+      - name: Run Test Suite
+        run: uv run pytest
+
+  build-and-deploy:
+    name: Build & Deploy to EC2
+    needs: quality-assurance
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and Archive Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          tags: epam-final-app:latest
+          outputs: type=docker,dest=./epam-final-app.tar
+
+      - name: Copy Docker Archive via SCP
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "./epam-final-app.tar"
+          target: "/home/ubuntu/"
+
+      - name: Deploy to Free-Tier EC2 via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            # 1. Create app directory if missing and overwrite the .env file with fresh variables
+            mkdir -p /home/ubuntu/app
+            echo "${{ secrets.ENV_FILE_CONTENT }}" > /home/ubuntu/app/.env
+
+            # 2. Load the fresh image archive into the local EC2 Docker engine
+            docker load -i /home/ubuntu/epam-final-app.tar
+            rm /home/ubuntu/epam-final-app.tar
+            
+            # 3. Navigate to deployment directory and restart container using your setup
+            cd /home/ubuntu/app
+            docker compose down --remove-orphans
+            docker compose up -d

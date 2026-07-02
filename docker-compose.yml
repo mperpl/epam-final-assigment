@@ -1,0 +1,65 @@
+services:
+  web:
+    build: .
+    command: >
+      sh -ec '
+      # Force export the compose environment variable down into this subshell context 👇
+      export DB_URL="$${DB_URL}"
+      export VALKEY_URL="$${VALKEY_URL}"
+
+      if [ -z "$(find alembic/versions -maxdepth 1 -name "*.py" ! -name "__init__.py")" ]; then
+        echo "No Alembic migrations found. Generating initial migration..."
+        alembic revision --autogenerate -m "initial"
+      fi
+
+      alembic upgrade head
+
+      exec fastapi dev app/main.py --host 0.0.0.0 --port 8000
+      '
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+    environment:
+      # Pulls securely from your .env file at runtime
+      - DB_URL=${DB_URL}
+      - VALKEY_URL=${VALKEY_URL}
+    depends_on:
+      db:
+        condition: service_healthy
+      valkey:
+        condition: service_healthy
+
+  db:
+    image: postgres:18.4-alpine
+    container_name: postgres_db
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      # Uses the dynamic user and db variables for the healthcheck query
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-postgres} -d $${POSTGRES_DB:-app_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  valkey:
+    image: valkey/valkey:9.1-alpine
+    container_name: valkey_cache
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD-SHELL", "valkey-cli ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  postgres_data:
