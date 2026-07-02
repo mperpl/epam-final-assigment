@@ -13,12 +13,12 @@ async def register_service(register_data: UserRegisterDTO, db: AsyncSession) -> 
     hashed_password = await hash_password(register_data.password1.get_secret_value())
     try:
         new_user = User(id=uuid4(), email=register_data.email, password=hashed_password)
-    
+
         db.add(new_user)
         await db.commit()
         await db.refresh(new_user)
-        
+
         return new_user
     except IntegrityError as e:
         await db.rollback()
-        raise DatabaseIntegrityError(f'User already exists: {e}')
+        raise DatabaseIntegrityError(f"User already exists: {e}")

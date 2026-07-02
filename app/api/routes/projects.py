@@ -32,42 +32,103 @@ from app.services.projects.update_project_service import update_project_service
 
 router = APIRouter(prefix="/projects", tags=["projects"])
 
+
 @router.get("", status_code=status.HTTP_200_OK, response_model=ProjectsGetResponse)
 async def get_accessible_projects(db: DB_SESSION, user_id: CURRENT_USER_ID):
     projects = await get_accessible_projects_service(user_id, db)
-    return {'projects': projects}
+    return {"projects": projects}
 
-@router.post("", status_code=status.HTTP_201_CREATED, response_model=ProjectCreateResponse)
-async def create_project(project_data: ProjectCreateDTO, db: DB_SESSION, user_id: CURRENT_USER_ID):
+
+@router.post(
+    "", status_code=status.HTTP_201_CREATED, response_model=ProjectCreateResponse
+)
+async def create_project(
+    project_data: ProjectCreateDTO, db: DB_SESSION, user_id: CURRENT_USER_ID
+):
     return {
-        'message': 'Project created successfully.',
-        'project': await create_project_service(project_data, user_id, db)
+        "message": "Project created successfully.",
+        "project": await create_project_service(project_data, user_id, db),
     }
 
-@router.get("/{project_id}", status_code=status.HTTP_200_OK, response_model=ProjectInfoResponse)
+
+@router.get(
+    "/{project_id}", status_code=status.HTTP_200_OK, response_model=ProjectInfoResponse
+)
 async def get_project_info(project_id: UUID, db: DB_SESSION, user_id: CURRENT_USER_ID):
     return await get_project_info_service(project_id, user_id, db)
 
-@router.put("/{project_id}", status_code=status.HTTP_200_OK, response_model=ProjectUpdateResponse)
-async def update_project_info(update_data: ProjectCreateDTO, project_id: UUID, db: DB_SESSION, user_id: CURRENT_USER_ID):
+
+@router.put(
+    "/{project_id}",
+    status_code=status.HTTP_200_OK,
+    response_model=ProjectUpdateResponse,
+)
+async def update_project_info(
+    update_data: ProjectCreateDTO,
+    project_id: UUID,
+    db: DB_SESSION,
+    user_id: CURRENT_USER_ID,
+):
     return {
         "message": "Project information updated successfully.",
-        "project": await update_project_service(update_data, project_id, user_id, db)
+        "project": await update_project_service(update_data, project_id, user_id, db),
     }
 
-@router.delete("/{project_id}", status_code=status.HTTP_200_OK, response_model=ProjectDeleteResponse)
-async def delete_project(project_id: UUID, user_id: CURRENT_USER_ID, db: DB_SESSION, s3_client: S3_CLIENT):
+
+@router.delete(
+    "/{project_id}",
+    status_code=status.HTTP_200_OK,
+    response_model=ProjectDeleteResponse,
+)
+async def delete_project(
+    project_id: UUID, user_id: CURRENT_USER_ID, db: DB_SESSION, s3_client: S3_CLIENT
+):
     await delete_project_service(project_id, user_id, db, s3_client)
     return {}
 
-@router.post("/{project_id}/user", status_code=status.HTTP_201_CREATED, response_model=ProjectInviteResponse)
-async def invite_user(project_id: UUID, invitee_data: UserInviteDTO, db: DB_SESSION, user_id: CURRENT_USER_ID):
+
+@router.post(
+    "/{project_id}/user",
+    status_code=status.HTTP_201_CREATED,
+    response_model=ProjectInviteResponse,
+)
+async def invite_user(
+    project_id: UUID,
+    invitee_data: UserInviteDTO,
+    db: DB_SESSION,
+    user_id: CURRENT_USER_ID,
+):
     return await invite_user_service(project_id, user_id, invitee_data, db)
 
-@router.put("/{project_id}/user", status_code=status.HTTP_201_CREATED, response_model=ProjectChangeRoleResponse)
-async def change_role(project_id: UUID, target_user_id: UUID, role_data: ProjectRoleUpdateDTO, current_user: CURRENT_USER_ID, db: DB_SESSION):
-    return await change_role_service(project_id, current_user, target_user_id, role_data.new_role.value, db)
 
-@router.delete("/{project_id}/user", status_code=status.HTTP_201_CREATED, response_model=ProjectChangeRoleResponse)
-async def remove_user_from_project(project_id: UUID, target_user_id: UUID, current_user: CURRENT_USER_ID, db: DB_SESSION):
-    return await remove_user_from_project_service(project_id, current_user, target_user_id, db)
+@router.put(
+    "/{project_id}/user",
+    status_code=status.HTTP_201_CREATED,
+    response_model=ProjectChangeRoleResponse,
+)
+async def change_role(
+    project_id: UUID,
+    target_user_id: UUID,
+    role_data: ProjectRoleUpdateDTO,
+    current_user: CURRENT_USER_ID,
+    db: DB_SESSION,
+):
+    return await change_role_service(
+        project_id, current_user, target_user_id, role_data.new_role.value, db
+    )
+
+
+@router.delete(
+    "/{project_id}/user",
+    status_code=status.HTTP_201_CREATED,
+    response_model=ProjectChangeRoleResponse,
+)
+async def remove_user_from_project(
+    project_id: UUID,
+    target_user_id: UUID,
+    current_user: CURRENT_USER_ID,
+    db: DB_SESSION,
+):
+    return await remove_user_from_project_service(
+        project_id, current_user, target_user_id, db
+    )

@@ -12,5 +12,3 @@ async def logout_all_service(response: Response, valkey: Valkey, user_id: UUID) 
 
     delete_token_cookie(response, is_refresh=False)
     delete_token_cookie(response, is_refresh=True)
-
-

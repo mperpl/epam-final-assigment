@@ -13,11 +13,21 @@ class Project(Base):
     id: Mapped[UUID] = mapped_column(Uuid, default=uuid4, primary_key=True)
     title: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
     content: Mapped[str] = mapped_column(Text)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
-    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
-    
-    user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"), index=True, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+    user_id: Mapped[UUID] = mapped_column(
+        ForeignKey("users.id"), index=True, nullable=False
+    )
 
     owner: Mapped["User"] = relationship(back_populates="projects")  # type: ignore # noqa: F821
-    documents: Mapped[list["Document"]] = relationship(back_populates="project", cascade="all, delete-orphan")  # type: ignore # noqa: F821
-    members: Mapped[list["ProjectMember"]] = relationship(back_populates="project", cascade="all, delete-orphan")  # type: ignore # noqa: F821
+    documents: Mapped[list["Document"]] = relationship( # type: ignore # noqa: F821
+        back_populates="project", cascade="all, delete-orphan"
+    )  
+    members: Mapped[list["ProjectMember"]] = relationship( # type: ignore # noqa: F821
+        back_populates="project", cascade="all, delete-orphan"
+    )  

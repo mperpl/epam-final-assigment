@@ -19,6 +19,7 @@ verify_is_anonymous
 verify_is_not_anonymous
 decode_user_id_from_cookie
 
+
 class TestHasToken:
     @pytest.mark.parametrize(
         "cookies, expected_result",
@@ -35,7 +36,7 @@ class TestHasToken:
             ({}, False),
             ({"access_token": "", "refresh_token": ""}, False),
             ({"access_token": False, "refresh_token": None}, False),
-        ]
+        ],
     )
     def test_has_token_scenarios(self, cookies, expected_result):
         mock_request = MagicMock(spec=Request)
@@ -60,7 +61,9 @@ class TestVerifyIsAnonymous:
         mock_has_token.return_value = True
         mock_request = MagicMock(spec=Request)
 
-        with pytest.raises(AuthorizationError, match="Route inaccessible for logged in users"):
+        with pytest.raises(
+            AuthorizationError, match="Route inaccessible for logged in users"
+        ):
             verify_is_anonymous(mock_request)
 
 
@@ -78,15 +81,18 @@ class TestVerifyIsNotAnonymous:
         mock_has_token.return_value = False
         mock_request = MagicMock(spec=Request)
 
-        with pytest.raises(AuthenticationError, match="Route inaccessible for logged out users."):
+        with pytest.raises(
+            AuthenticationError, match="Route inaccessible for logged out users."
+        ):
             verify_is_not_anonymous(mock_request)
-
 
 
 def build_mock_request(cookies: dict) -> Request:
     request = MagicMock(spec=Request)
     request.cookies = cookies
     return request
+
+
 class TestDecodeUserIdFromCookie:
     @patch("app.api.dependencies.auth.decode_jwt")
     def test_decode_success(self, mock_decode_jwt):

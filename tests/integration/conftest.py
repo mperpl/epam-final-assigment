@@ -19,12 +19,13 @@ async def db_session():
     """Provides an isolated, shared in-memory SQLite database session."""
     # "sqlite+aiosqlite:///file:memdb1?mode=memory&cache=shared"
     engine = create_async_engine("sqlite+aiosqlite:///:memory:")
-    
+
     # (Your table creation block here: Base.metadata.create_all)
     async with engine.begin() as conn:
         from app.models import Base  # Adjust to your base model path
+
         await conn.run_sync(Base.metadata.create_all)
-        
+
     session = AsyncSession(engine, expire_on_commit=False)
     yield session
     await session.close()
@@ -48,7 +49,7 @@ def test_user_id() -> UUID:
 @pytest_asyncio.fixture
 async def client(db_session: AsyncSession, mock_valkey):
     """Provides a standard, unauthenticated AsyncClient (Anonymous / Logged Out User)."""
-    
+
     app.dependency_overrides[get_db] = lambda: db_session
     app.dependency_overrides[get_valkey] = lambda v=mock_valkey: v
 
@@ -60,26 +61,26 @@ async def client(db_session: AsyncSession, mock_valkey):
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
         yield ac
-        
+
     app.dependency_overrides.clear()
 
 
 @pytest_asyncio.fixture
 async def auth_client(client: AsyncClient, test_user_id: UUID) -> AsyncClient:
     """Provides an authenticated AsyncClient (Logged In User).
-    
-    Bakes a cryptographically valid access token into cookies. Satisfies 
+
+    Bakes a cryptographically valid access token into cookies. Satisfies
     CURRENT_USER_ID, LOGGED_IN_GUARD, and LOGGED_OUT_GUARD seamlessly.
     """
     # 1. Craft a valid JWT signed with your app's actual secret configurations
     payload = {
         "sub": str(test_user_id),
         "exp": datetime.now(timezone.utc) + timedelta(hours=1),
-        "jti": f"test-jti-{uuid4().hex[:8]}"
+        "jti": f"test-jti-{uuid4().hex[:8]}",
     }
     token = jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
-    
+
     # 2. Inject it straight into the client's cookie jar
     client.cookies.set("access_token", token)
-    
+
     return client

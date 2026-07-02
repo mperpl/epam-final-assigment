@@ -10,8 +10,12 @@ from app.models.project import Project
 from app.models.project_member import ProjectRole
 
 
-async def update_project_service(update_data: ProjectCreateDTO, project_id: UUID, user_id: UUID, db: AsyncSession) -> Project:
-    project: Project = await get_project_if_role_in(user_id, project_id, [ProjectRole.OWNER, ProjectRole.EDITOR], db)
+async def update_project_service(
+    update_data: ProjectCreateDTO, project_id: UUID, user_id: UUID, db: AsyncSession
+) -> Project:
+    project: Project = await get_project_if_role_in(
+        user_id, project_id, [ProjectRole.OWNER, ProjectRole.EDITOR], db
+    )
 
     project.title = update_data.title
     project.content = update_data.content
@@ -22,5 +26,4 @@ async def update_project_service(update_data: ProjectCreateDTO, project_id: UUID
         return project
     except SQLAlchemyError as e:
         await db.rollback()
-        raise EntryNotFoundError(f'Database could not find the entry: {e}')
-        
+        raise EntryNotFoundError(f"Database could not find the entry: {e}")

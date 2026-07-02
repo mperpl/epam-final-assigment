@@ -13,23 +13,33 @@ async def get_valkey(request: Request) -> AsyncGenerator[Valkey, None]:
     finally:
         await client.aclose()
 
+
 VALKEY_CLIENT = Annotated[Valkey, Depends(get_valkey)]
+
 
 def generate_valkey_session_string(user_id: str, refresh_token_jti: str):
     return f"user_id:{user_id}:refresh_token_jti:{refresh_token_jti}"
 
-async def set_valkey_session(user_id: str, refresh_token_jti: str, timedelta: timedelta, valkey: Valkey):
+
+async def set_valkey_session(
+    user_id: str, refresh_token_jti: str, timedelta: timedelta, valkey: Valkey
+):
     key = generate_valkey_session_string(user_id, refresh_token_jti)
-    await valkey.setex(key, timedelta, '1')
+    await valkey.setex(key, timedelta, "1")
+
 
 async def get_valkey_session(user_id: str, refresh_token_jti: str, valkey: Valkey):
     key = generate_valkey_session_string(user_id, refresh_token_jti)
     return await valkey.get(key)
 
-async def delete_valkey_session(user_id: str, refresh_token_jti: str, valkey: Valkey) -> None:
+
+async def delete_valkey_session(
+    user_id: str, refresh_token_jti: str, valkey: Valkey
+) -> None:
     old_key = generate_valkey_session_string(user_id, refresh_token_jti)
     await valkey.delete(old_key)
-    
+
+
 async def delete_valkey_sessions(user_id: str, valkey: Valkey):
     pattern = f"user_id:{user_id}:refresh_token_jti:*"
     keys_to_delete = []

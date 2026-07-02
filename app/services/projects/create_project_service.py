@@ -9,10 +9,16 @@ from app.models.project import Project
 from app.models.project_member import ProjectRole
 
 
-async def create_project_service(project_data: ProjectCreateDTO, user_id: UUID, db: AsyncSession) -> Project:
+async def create_project_service(
+    project_data: ProjectCreateDTO, user_id: UUID, db: AsyncSession
+) -> Project:
     async with db.begin():
-        new_project = await create_flush_project(user_id, project_data.title, project_data.content, db)
-        project_member = await create_flush_project_member(user_id, new_project.id, ProjectRole.OWNER, db)  # noqa: F841
+        new_project = await create_flush_project(
+            user_id, project_data.title, project_data.content, db
+        )
+        await create_flush_project_member(
+            user_id, new_project.id, ProjectRole.OWNER, db
+        )  # noqa: F841
         await db.refresh(new_project)
 
     return new_project

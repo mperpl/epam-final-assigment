@@ -12,33 +12,40 @@ from app.models.document import Document
 from app.services.utils.file import get_file_extension_if_allowed
 
 
-async def get_document(project_id: UUID, document_id: UUID, db: AsyncSession) -> Document:
+async def get_document(
+    project_id: UUID, document_id: UUID, db: AsyncSession
+) -> Document:
     try:
-        stmt = select(Document).where(and_(Document.id == document_id, Document.project_id == project_id))
+        stmt = select(Document).where(
+            and_(Document.id == document_id, Document.project_id == project_id)
+        )
         document = (await db.execute(stmt)).scalar_one_or_none()
-        
+
         if not document:
             raise EntryNotFoundError("Document not found in this project")
         return document
     except DatabaseError as e:
         raise DatabaseError(f"Database error: {e}")
-    
+
+
 async def get_documents(project_id: UUID, db: AsyncSession) -> list[Document]:
     try:
         stmt = select(Document).where(Document.project_id == project_id)
         documents = (await db.execute(stmt)).scalars().all()
-        
+
         return documents
     except DatabaseError as e:
         raise DatabaseError(f"Database error: {e}")
 
 
-async def create_flush_document(project_id: UUID, filename: str, db: AsyncSession) -> Document:
+async def create_flush_document(
+    project_id: UUID, filename: str, db: AsyncSession
+) -> Document:
     document_id = uuid4()
     original_extension = get_file_extension_if_allowed(filename)
 
     if original_extension in settings.ALLOWED_IMAGE_EXTENSIONS:
-        final_extension = '.jpg'
+        final_extension = ".jpg"
         base_name, _ = os.path.splitext(filename)
         final_filename = f"{base_name}.jpg"
     else:
@@ -51,7 +58,7 @@ async def create_flush_document(project_id: UUID, filename: str, db: AsyncSessio
         id=document_id,
         filename=final_filename,
         s3_key=final_s3_key,
-        project_id=project_id
+        project_id=project_id,
     )
 
     db.add(new_document)

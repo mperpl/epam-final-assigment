@@ -21,11 +21,21 @@ class Settings(BaseSettings):
     # DOCUMENTS
     MAX_ALLOWED_FILE_SIZE_B: int
     MAX_ALLOWED_PROJECT_SIZE_B: int
-    ALLOWED_DOCUMENT_EXTENSIONS: set = {'.pdf', '.docx', '.txt', '.pptx', '.xlsx'}
-    ALLOWED_IMAGE_EXTENSIONS: set = {'.jpg', '.jpeg', '.png', '.webp', '.gif', '.bmp', '.jfif'}
-    ALLOWED_EXTENSIONS: set = ALLOWED_IMAGE_EXTENSIONS.union(ALLOWED_DOCUMENT_EXTENSIONS)
+    ALLOWED_DOCUMENT_EXTENSIONS: set = {".pdf", ".docx", ".txt", ".pptx", ".xlsx"}
+    ALLOWED_IMAGE_EXTENSIONS: set = {
+        ".jpg",
+        ".jpeg",
+        ".png",
+        ".webp",
+        ".gif",
+        ".bmp",
+        ".jfif",
+    }
+    ALLOWED_EXTENSIONS: set = ALLOWED_IMAGE_EXTENSIONS.union(
+        ALLOWED_DOCUMENT_EXTENSIONS
+    )
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
-settings = Settings()
 
+settings = Settings()

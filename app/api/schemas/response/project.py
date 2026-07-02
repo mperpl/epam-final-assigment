@@ -16,6 +16,7 @@ class ProjectBareData(BaseResponseModel):
     updated_at: datetime
     user_id: UUID
 
+
 class ProjectData(BaseResponseModel):
     id: UUID
     title: str
@@ -25,12 +26,15 @@ class ProjectData(BaseResponseModel):
     user_id: UUID
     documents: list[DocumentData]
 
+
 class ProjectsGetResponse(BaseResponseModel):
     projects: list[ProjectBareData]
+
 
 class ProjectCreateResponse(BaseResponseModel):
     message: str = "Project created successfully."
     project: ProjectData
+
 
 class ProjectInfoResponse(BaseResponseModel):
     id: UUID
@@ -41,17 +45,21 @@ class ProjectInfoResponse(BaseResponseModel):
     user_id: UUID
     documents: list[DocumentData]
 
+
 class ProjectUpdateResponse(BaseResponseModel):
     message: str = "Project information updated successfully."
     project: ProjectBareData
 
+
 class ProjectDeleteResponse(BaseModel):
     message: str = "Project and its associated documents were permanently deleted."
+
 
 class ProjectInviteResponse(BaseModel):
     message: str = "Invitation sent successfully."
     project_id: UUID
     invitee_email: EmailStr
+
 
 class ProjectChangeRoleResponse(BaseModel):
     message: str

@@ -27,18 +27,22 @@ class TestCreateAccessToken:
     def test_create_access_token_success_default_expire(self):
         """Verifies standard generation with default expiration settings when 'sub' is provided."""
         payload = {"sub": "user-123-uuid", "role": "admin"}
-        
+
         token = create_access_token(data=payload)
-        
+
         assert isinstance(token, str)
-        decoded = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-        
+        decoded = jwt.decode(
+            token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
+        )
+
         assert decoded["sub"] == "user-123-uuid"
         assert decoded["role"] == "admin"
         assert "exp" in decoded
-        
+
         # Verify expiration timing limits
-        expected_expiry = datetime.now(timezone.utc) + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+        expected_expiry = datetime.now(timezone.utc) + timedelta(
+            minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
+        )
         decoded_expiry = datetime.fromtimestamp(decoded["exp"], tz=timezone.utc)
         assert abs((expected_expiry - decoded_expiry).total_seconds()) < 5
 
@@ -46,10 +50,14 @@ class TestCreateAccessToken:
         """Verifies that passing custom minutes overrides the default setting."""
         payload = {"sub": "user-123-uuid"}
         custom_minutes = 10
-        
-        token = create_access_token(data=payload, ACCESS_TOKEN_EXPIRE_MINUTES=custom_minutes)
-        decoded = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-        
+
+        token = create_access_token(
+            data=payload, ACCESS_TOKEN_EXPIRE_MINUTES=custom_minutes
+        )
+        decoded = jwt.decode(
+            token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
+        )
+
         expected_expiry = datetime.now(timezone.utc) + timedelta(minutes=custom_minutes)
         decoded_expiry = datetime.fromtimestamp(decoded["exp"], tz=timezone.utc)
         assert abs((expected_expiry - decoded_expiry).total_seconds()) < 5
@@ -58,24 +66,24 @@ class TestCreateAccessToken:
     @pytest.mark.parametrize(
         "invalid_payload",
         [
-            {},                         # Completely empty dict
-            {"role": "admin"},          # Data exists, but missing 'sub'
-            {"subject": "user-123"},    # Wrong key name entirely
-        ]
+            {},  # Completely empty dict
+            {"role": "admin"},  # Data exists, but missing 'sub'
+            {"subject": "user-123"},  # Wrong key name entirely
+        ],
     )
     def test_create_access_token_raises_on_missing_sub(self, invalid_payload):
         """Verifies that any payload lacking a 'sub' key triggers a DataIntegrityError."""
         with pytest.raises(DataIntegrityError) as exc_info:
             create_access_token(data=invalid_payload)
-            
+
         assert str(exc_info.value) == "Token payload has to contain 'sub' field."
 
     def test_create_access_token_does_not_mutate_input(self):
         """Verifies function leaves the original input dictionary completely intact."""
         payload = {"sub": "user-456-uuid"}
-        
+
         create_access_token(data=payload)
-        
+
         assert "exp" not in payload
         assert list(payload.keys()) == ["sub"]
 
@@ -98,24 +106,32 @@ class TestCreateRefreshToken:
         assert token_1 != token_2  # Dynamic uuid4 ensures tokens aren't identical
 
         # Decode and inspect properties
-        decoded1 = jwt.decode(token_1, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        decoded1 = jwt.decode(
+            token_1, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
+        )
         assert decoded1["sub"] == "user-789-uuid"
         assert decoded1["org"] == "my-company"
         assert "jti" in decoded1
         assert "exp" in decoded1
 
-        decoded2 = jwt.decode(token_2, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        decoded2 = jwt.decode(
+            token_2, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
+        )
         assert decoded2["sub"] == "user-789-uuid"
         assert decoded2["org"] == "my-company"
         assert "jti" in decoded2
         assert "exp" in decoded2
 
         # Verify time calculation limits (default days config)
-        expected_expiry1 = datetime.now(timezone.utc) + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
+        expected_expiry1 = datetime.now(timezone.utc) + timedelta(
+            days=settings.REFRESH_TOKEN_EXPIRE_DAYS
+        )
         decoded_expiry1 = datetime.fromtimestamp(decoded1["exp"], tz=timezone.utc)
         assert abs((expected_expiry1 - decoded_expiry1).total_seconds()) < 5
 
-        expected_expiry2 = datetime.now(timezone.utc) + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
+        expected_expiry2 = datetime.now(timezone.utc) + timedelta(
+            days=settings.REFRESH_TOKEN_EXPIRE_DAYS
+        )
         decoded_expiry2 = datetime.fromtimestamp(decoded1["exp"], tz=timezone.utc)
         assert abs((expected_expiry2 - decoded_expiry2).total_seconds()) < 5
 
@@ -123,16 +139,20 @@ class TestCreateRefreshToken:
         assert mock_set_session.call_count == 2
         # Verify the target arguments passed to the cache layer match payload variables
         called_args1 = mock_set_session.call_args_list[0][0]
-        assert called_args1[0] == "user-789-uuid"              # str_user_id
-        assert called_args1[1] == decoded1["jti"]                # str_jti
-        assert called_args1[2] == timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)  # td_exp
-        assert called_args1[3] == mock_valkey                   # valkey client instance
-        
+        assert called_args1[0] == "user-789-uuid"  # str_user_id
+        assert called_args1[1] == decoded1["jti"]  # str_jti
+        assert called_args1[2] == timedelta(
+            days=settings.REFRESH_TOKEN_EXPIRE_DAYS
+        )  # td_exp
+        assert called_args1[3] == mock_valkey  # valkey client instance
+
         called_args2 = mock_set_session.call_args_list[1][0]
-        assert called_args2[0] == "user-789-uuid"              # str_user_id
-        assert called_args2[1] == decoded2["jti"]                # str_jti
-        assert called_args2[2] == timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)  # td_exp
-        assert called_args2[3] == mock_valkey                   # valkey client instance
+        assert called_args2[0] == "user-789-uuid"  # str_user_id
+        assert called_args2[1] == decoded2["jti"]  # str_jti
+        assert called_args2[2] == timedelta(
+            days=settings.REFRESH_TOKEN_EXPIRE_DAYS
+        )  # td_exp
+        assert called_args2[3] == mock_valkey  # valkey client instance
 
     @pytest.mark.asyncio
     @patch("app.core.security.set_valkey_session", new_callable=AsyncMock)
@@ -142,8 +162,12 @@ class TestCreateRefreshToken:
         mock_valkey = AsyncMock()
         custom_days = 14
 
-        token = await create_refresh_token(data=payload, valkey=mock_valkey, REFRESH_TOKEN_EXPIRE_DAYS=custom_days)
-        decoded = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        token = await create_refresh_token(
+            data=payload, valkey=mock_valkey, REFRESH_TOKEN_EXPIRE_DAYS=custom_days
+        )
+        decoded = jwt.decode(
+            token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
+        )
 
         # Validate JWT expiration
         expected_expiry = datetime.now(timezone.utc) + timedelta(days=custom_days)
@@ -160,7 +184,7 @@ class TestCreateRefreshToken:
         [
             {},
             {"role": "user"},
-        ]
+        ],
     )
     async def test_create_refresh_token_raises_on_missing_sub(self, invalid_payload):
         """Case E: Guardrail prevents creating a refresh token without a 'sub' field."""
@@ -187,7 +211,6 @@ class TestCreateRefreshToken:
 
 ################################################################################# decode_jwt
 class TestDecodeJWT:
-
     def test_decode_jwt_success_case_a(self):
         """Case A: Successfully decodes a structurally sound, signed, and unexpired token."""
         payload = {"sub": "user-123-uuid", "role": "user"}
@@ -204,9 +227,11 @@ class TestDecodeJWT:
         # Create a payload explicitly timestamped 10 minutes in the past
         expired_time = datetime.now(timezone.utc) - timedelta(minutes=10)
         payload = {"sub": "user-123-uuid", "exp": expired_time}
-        
+
         # Manually encode using the standard library to bypass our function's safety rules
-        expired_token = jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+        expired_token = jwt.encode(
+            payload, settings.SECRET_KEY, algorithm=settings.ALGORITHM
+        )
 
         with pytest.raises(TokenExpiredError):
             decode_jwt(expired_token)
@@ -215,7 +240,11 @@ class TestDecodeJWT:
         """Case C: Catches a tampered signature or bad key and raises InvalidTokenSignatureError."""
         payload = {"sub": "user-123-uuid"}
         # Sign the token using an invalid secret key
-        bad_signed_token = jwt.encode(payload, "WRONG_SECRET_KEY_skibidisgima67gyatmaxxing2137billgates", algorithm=settings.ALGORITHM)
+        bad_signed_token = jwt.encode(
+            payload,
+            "WRONG_SECRET_KEY_skibidisgima67gyatmaxxing2137billgates",
+            algorithm=settings.ALGORITHM,
+        )
 
         with pytest.raises(InvalidTokenSignatureError):
             decode_jwt(bad_signed_token)
@@ -261,7 +290,7 @@ class TestPasswordSecurity:
         """Case D: Returns False when attempting to verify an incorrect password."""
         password = "CorrectPassword123"
         wrong_password = "IncorrectPassword123"
-        
+
         hashed = await hash_password(password)
 
         is_valid = await verify_password(wrong_password, hashed)
@@ -275,5 +304,5 @@ class TestPasswordSecurity:
 
         with pytest.raises(UnknownHashError) as exc_info:
             await verify_password(password, malformed_hash)
-            
+
         assert "This hash can't be identified" in str(exc_info.value)
