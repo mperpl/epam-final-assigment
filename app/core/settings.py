@@ -1,26 +1,28 @@
+from typing import Optional
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
     # db
-    DB_URL: str
-    VALKEY_URL: str
+    DB_URL: Optional[str] = None
+    VALKEY_URL: Optional[str] = None
 
     # jwt
-    REFRESH_TOKEN_EXPIRE_DAYS: int
-    ACCESS_TOKEN_EXPIRE_MINUTES: int
-    SECRET_KEY: str
-    ALGORITHM: str
+    REFRESH_TOKEN_EXPIRE_DAYS: Optional[int] = None
+    ACCESS_TOKEN_EXPIRE_MINUTES: Optional[int] = None
+    SECRET_KEY: Optional[str] = None
+    ALGORITHM: Optional[str] = None
 
     # AWS
-    AWS_ACCESS_KEY_ID: str
-    AWS_SECRET_ACCESS_KEY: str
-    AWS_REGION: str
-    S3_BUCKET: str
+    AWS_ACCESS_KEY_ID: Optional[str] = None
+    AWS_SECRET_ACCESS_KEY: Optional[str] = None
+    AWS_REGION: Optional[str] = None
+    S3_BUCKET: Optional[str] = None
 
     # DOCUMENTS
-    MAX_ALLOWED_FILE_SIZE_B: int
-    MAX_ALLOWED_PROJECT_SIZE_B: int
+    MAX_ALLOWED_FILE_SIZE_B: Optional[int] = None
+    MAX_ALLOWED_PROJECT_SIZE_B: Optional[int] = None
     ALLOWED_DOCUMENT_EXTENSIONS: set = {".pdf", ".docx", ".txt", ".pptx", ".xlsx"}
     ALLOWED_IMAGE_EXTENSIONS: set = {
         ".jpg",
