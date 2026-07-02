@@ -15,11 +15,6 @@ from app.services.utils.file import (
     validate_upload_file_size,
 )
 
-get_file_extension_if_allowed
-get_safe_filename
-get_content_type
-validate_upload_file_size
-
 MOCK_ALLOWED_EXTENTIONS = {".jpg", ".jpeg", ".png", ".pdf", ".docx"}
 
 
@@ -135,8 +130,6 @@ class TestGetContentType:
 
 
 ONE_MB = 1_048_576
-
-
 class TestValidateUploadFileSize:
     def test_file_size_within_limit_success(self):
         """Verifies that files under or equal to the maximum allowed size pass through cleanly."""
