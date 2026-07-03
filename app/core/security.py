@@ -69,7 +69,7 @@ def create_token_cookie(response: Response, token, is_refresh=False) -> None:
         key="refresh_token" if is_refresh else "access_token",
         value=token,
         httponly=True,
-        secure=True,
+        secure=False, # Should be True for https
         samesite="lax",
         path="/",
         max_age=settings.REFRESH_TOKEN_EXPIRE_DAYS * 86_400
@@ -83,7 +83,7 @@ def delete_token_cookie(response: Response, is_refresh=False) -> None:
         key="refresh_token" if is_refresh else "access_token",
         path="/",
         httponly=True,
-        secure=True,
+        secure=False,
         samesite="lax",
     )
 
