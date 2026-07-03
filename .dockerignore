@@ -1,0 +1,38 @@
+# --- Python specific ---
+__pycache__/
+*.py[cod]
+*$py.class
+.python-version
+.venv/
+venv/
+ENV/
+env/
+
+# --- Environment & Sensitive Data ---
+.env
+.env.*
+!.env.example
+*.db
+app.db
+alembic.ini
+.secrets/
+
+# --- Version Control ---
+.git/
+.gitignore
+
+# --- IDE & Editor ---
+.vscode/
+.idea/
+.DS_Store
+
+# --- Docker & CI/CD ---
+Dockerfile
+docker-compose.yml
+.dockerignore
+tests/
+
+# --- Project Specific ---
+# Your vendored folder is likely large and shouldn't be copied into the image
+# if you are installing dependencies via pip/uv inside the Dockerfile
+vendored/
