@@ -1,5 +1,6 @@
 from uuid import UUID
 
+from botocore.exceptions import ClientError
 from fastapi import UploadFile
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -38,15 +39,19 @@ async def append_document_service(
 
     incoming_s3_key = f"raw/{project_id}/{new_document.id}{original_extension}"
 
-    await upload_file_s3(
-        file,
-        settings.S3_BUCKET,
-        incoming_s3_key,
-        content_type,
-        project_id,
-        new_document.id,
-        s3_client,
-    )
+    try:
+        await upload_file_s3(
+            file,
+            settings.S3_BUCKET,
+            incoming_s3_key,
+            content_type,
+            project_id,
+            new_document.id,
+            s3_client,
+        )
+    except ClientError as e:
+        raise S3StorageError(f'Failed to upload file to storage: {e}')
+
 
     try:
         await db.commit()

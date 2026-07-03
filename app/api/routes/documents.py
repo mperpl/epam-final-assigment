@@ -2,7 +2,8 @@ from uuid import UUID
 
 from fastapi import APIRouter, File, UploadFile, status
 
-from app.api.dependencies.auth import CURRENT_USER_ID, LOGGED_IN_GUARD
+from app.api.dependencies.auth import CURRENT_USER_ID
+from app.api.schemas.dto.document import DocumentUpdateDTO
 from app.api.schemas.response.document import (
     DocumentAppendResponse,
     DocumentDeleteResponse,
@@ -28,10 +29,10 @@ router = APIRouter(prefix="/projects", tags=["documents"])
     status_code=status.HTTP_200_OK,
     response_model=DocumentsGetResponse,
 )
-async def get_project_documents(project_id: UUID, db: DB_SESSION, _: LOGGED_IN_GUARD):
+async def get_project_documents(project_id: UUID, db: DB_SESSION, user_id: CURRENT_USER_ID):
     return {
         "project_id": project_id,
-        "documents": await get_project_documents_service(project_id, db),
+        "documents": await get_project_documents_service(project_id, user_id, db),
     }
 
 
@@ -79,9 +80,9 @@ async def download_document(
     response_model=DocumentUpdateResponse,
 )
 async def update_document(
-    project_id: UUID, document_id: UUID, user_id: CURRENT_USER_ID, db: DB_SESSION
+    project_id: UUID, document_id: UUID, user_id: CURRENT_USER_ID, new_filename: DocumentUpdateDTO, db: DB_SESSION
 ):
-    return await update_document_service(project_id, document_id, user_id, db)
+    return await update_document_service(project_id, document_id, new_filename.filename, user_id, db)
 
 
 @router.delete(

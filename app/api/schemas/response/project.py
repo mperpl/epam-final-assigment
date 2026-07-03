@@ -33,7 +33,7 @@ class ProjectsGetResponse(BaseResponseModel):
 
 class ProjectCreateResponse(BaseResponseModel):
     message: str = "Project created successfully."
-    project: ProjectData
+    project: ProjectBareData
 
 
 class ProjectInfoResponse(BaseResponseModel):

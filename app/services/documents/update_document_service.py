@@ -6,7 +6,7 @@ from app.core.exceptions import DatabaseError
 from app.database.queries.documents import get_document
 from app.models.document import Document
 from app.models.project_member import ProjectRole
-from app.services.utils.file import get_safe_filename
+from app.services.utils.file import update_document_filename_validator
 from app.services.utils.security import user_role_in
 
 
@@ -18,9 +18,11 @@ async def update_document_service(
     db: AsyncSession,
 ) -> Document:
     await user_role_in(project_id, user_id, (ProjectRole.OWNER, ProjectRole.EDITOR), db)
-    new_filename = get_safe_filename(new_filename.strip())
 
     document: Document = await get_document(project_id, document_id, db)
+    old_filename = document.filename
+    update_document_filename_validator(old_filename, new_filename)
+
     document.filename = new_filename
 
     try:

@@ -53,3 +53,11 @@ def validate_upload_file_size(
             status_code=413,
             message=f"File size exceeds the maximum allowed limit of {max_size_mb:.1f} MB.",
         )
+
+def update_document_filename_validator(old_filename: str, new_filename: str):
+    old_name, old_ext = os.path.splitext(old_filename)
+    new_name, new_ext = os.path.splitext(new_filename)
+    if new_ext.lower() != old_ext.lower():
+        raise DataIntegrityError(f"Extension change not allowed. Must remain {old_name}{old_ext}")
+    if new_ext.lower() not in settings.ALLOWED_EXTENSIONS:
+        raise DataIntegrityError("File extension not permitted.")

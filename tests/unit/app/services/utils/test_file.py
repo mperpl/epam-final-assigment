@@ -12,6 +12,7 @@ from app.services.utils.file import (
     get_content_type,
     get_file_extension_if_allowed,
     get_safe_filename,
+    update_document_filename_validator,
     validate_upload_file_size,
 )
 
@@ -166,3 +167,30 @@ class TestValidateUploadFileSize:
 
         assert exc_info.value.status_code == 413
         assert "exceeds the maximum allowed limit of 1.0 MB" in exc_info.value.message
+
+class MockSettings:
+    ALLOWED_EXTENSIONS = {".pdf", ".docx", ".jpg", ".png"}
+settings = MockSettings()
+class TestUpdateDocumentFilenameValidator:
+    def test_valid_filename_update(self):
+        # Should pass
+        update_document_filename_validator("test.pdf", "new_name.pdf")
+
+    def test_case_insensitive_extension_update(self):
+        # .JPG and .jpg should be treated as equal
+        update_document_filename_validator("test.JPG", "new_name.jpg")
+
+    def test_illegal_extension_change(self):
+        # Changing from pdf to docx
+        with pytest.raises(DataIntegrityError, match="Extension change not allowed"):
+            update_document_filename_validator("test.pdf", "test.docx")
+
+    def test_unsupported_extension(self):
+        # Attempting to use a non-allowed extension
+        with pytest.raises(DataIntegrityError, match='Extension change not allowed. Must remain test.pdf'):
+            update_document_filename_validator("test.pdf", "test.exe")
+
+    def test_no_extension_to_extension(self):
+        # Logic should handle cases where one might lack an extension
+        with pytest.raises(DataIntegrityError):
+            update_document_filename_validator("test", "test.pdf")
