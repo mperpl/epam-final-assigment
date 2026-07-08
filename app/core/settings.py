@@ -4,6 +4,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
+    IS_HTTPS: Optional[bool] = None
+
     # db
     DB_URL: Optional[str] = None
     VALKEY_URL: Optional[str] = None

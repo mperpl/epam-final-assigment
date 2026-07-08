@@ -29,7 +29,7 @@ class DocumentDownloadResponse(BaseResponseModel):
 
 
 class DocumentUpdateResponse(BaseResponseModel):
-    message: str = "Document metadata updated successfully."
+    message: str = "Document name updated successfully."
     document: DocumentData
 
 

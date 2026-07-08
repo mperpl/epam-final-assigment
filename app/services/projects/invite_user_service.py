@@ -19,12 +19,11 @@ from app.models.user import User
 async def invite_user_service(
     project_id: UUID, owner_id: UUID, invitee_data: UserInviteDTO, db: AsyncSession
 ) -> dict:
+    target_user = await _get_target_user(invitee_data, db)
     role_to_assign = ProjectRole(invitee_data.grant_role.value)
     member = await get_project_member(owner_id, project_id, db)
     if member.role != ProjectRole.OWNER:
         raise AuthorizationError("Only the project owner can invite new members.")
-
-    target_user = await _get_target_user(invitee_data, db)
 
     try:
         new_member = ProjectMember(

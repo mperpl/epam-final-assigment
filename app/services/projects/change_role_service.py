@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.exceptions import DatabaseError
 from app.database.queries.project_member import get_project_member
 from app.models.project_member import ProjectRole
-from app.services.utils.security import protect_owner_deletion
+from app.services.utils.security import protect_owner_deletion, user_role_in
 
 
 async def change_role_service(
@@ -16,7 +16,8 @@ async def change_role_service(
     db: AsyncSession,
 ) -> dict:
     role_to_assign = ProjectRole(new_role_value)
-    await protect_owner_deletion(current_user_id, target_user_id, project_id, db)
+    protect_owner_deletion(current_user_id, target_user_id)
+    await user_role_in(project_id, current_user_id, (ProjectRole.OWNER,), db)
     member_record = await get_project_member(target_user_id, project_id, db)
 
     if member_record.role == role_to_assign:

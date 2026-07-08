@@ -4,7 +4,6 @@ from botocore.exceptions import ClientError
 from sqlalchemy.ext.asyncio import AsyncSession
 from types_aiobotocore_s3 import S3Client
 
-from app.api.schemas.response.document import DocumentDownloadResponse
 from app.aws.s3 import get_download_url_s3
 from app.core.exceptions import S3StorageError
 from app.database.queries.documents import get_document
@@ -19,17 +18,18 @@ async def download_document_service(
     user_id: UUID,
     db: AsyncSession,
     s3_client: S3Client,
-) -> DocumentDownloadResponse:
-    document: Document = await get_document(project_id, document_id, db)
+) -> tuple[str, str]:
     await user_role_in(
         project_id,
         user_id,
         (ProjectRole.OWNER, ProjectRole.EDITOR, ProjectRole.VIEWER),
-        db,
+        db
     )
+    document: Document = await get_document(project_id, document_id, db)
 
     try:
-        url = await get_download_url_s3(document.s3_key, s3_client)
+        filename = document.filename
+        download_url = await get_download_url_s3(document.s3_key, s3_client)
     except ClientError as e:
         raise S3StorageError(f"Failed to generate download link: {e}")
-    return DocumentDownloadResponse(filename=document.filename, download_url=url)
+    return (filename, download_url)

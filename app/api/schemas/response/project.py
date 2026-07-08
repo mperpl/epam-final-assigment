@@ -5,7 +5,6 @@ from pydantic import BaseModel, EmailStr
 
 from app.api.schemas.from_attributes_true import BaseResponseModel
 from app.api.schemas.response.document import DocumentData
-from app.models.project_member import GrantProjectRole
 
 
 class ProjectBareData(BaseResponseModel):
@@ -17,13 +16,7 @@ class ProjectBareData(BaseResponseModel):
     user_id: UUID
 
 
-class ProjectData(BaseResponseModel):
-    id: UUID
-    title: str
-    content: str
-    created_at: datetime
-    updated_at: datetime
-    user_id: UUID
+class ProjectData(ProjectBareData):
     documents: list[DocumentData]
 
 
@@ -36,12 +29,7 @@ class ProjectCreateResponse(BaseResponseModel):
     project: ProjectBareData
 
 
-class ProjectInfoResponse(BaseResponseModel):
-    id: UUID
-    title: str
-    content: str
-    created_at: datetime
-    updated_at: datetime
+class ProjectInfoResponse(ProjectBareData):
     user_id: UUID
     documents: list[DocumentData]
 
@@ -62,7 +50,4 @@ class ProjectInviteResponse(BaseModel):
 
 
 class ProjectChangeRoleResponse(BaseModel):
-    message: str
-    project_id: UUID
-    user_id: UUID
-    role: GrantProjectRole
+    message: str = "User successfully removed from the project."

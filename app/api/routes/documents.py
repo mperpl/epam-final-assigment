@@ -69,9 +69,11 @@ async def download_document(
     db: DB_SESSION,
     s3_client: S3_CLIENT,
 ):
-    return await download_document_service(
-        project_id, document_id, user_id, db, s3_client
-    )
+    filename, download_url = await download_document_service(project_id, document_id, user_id, db, s3_client)
+    return {
+        'filename': filename,
+        'download_url': download_url
+    }
 
 
 @router.put(
@@ -82,7 +84,11 @@ async def download_document(
 async def update_document(
     project_id: UUID, document_id: UUID, user_id: CURRENT_USER_ID, new_filename: DocumentUpdateDTO, db: DB_SESSION
 ):
-    return await update_document_service(project_id, document_id, new_filename.filename, user_id, db)
+    
+    return {
+        'message': 'Document name updated successfully.',
+        'document': await update_document_service(project_id, document_id, new_filename.filename, user_id, db)
+    }
 
 
 @router.delete(

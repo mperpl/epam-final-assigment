@@ -32,7 +32,7 @@ class TestHasToken:
             # Scenario 6: Explicit Falsy or None Values
             ({"access_token": "valid_access", "refresh_token": "valid_refresh"}, True),
             ({"access_token": "valid_access"}, True),
-            ({"refresh_token": "valid_refresh"}, True),
+            ({"refresh_token": "valid_refresh"}, False),
             ({}, False),
             ({"access_token": "", "refresh_token": ""}, False),
             ({"access_token": False, "refresh_token": None}, False),

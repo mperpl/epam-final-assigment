@@ -23,7 +23,7 @@ async def update_document_service(
     old_filename = document.filename
     update_document_filename_validator(old_filename, new_filename)
 
-    document.filename = new_filename
+    document.filename = new_filename.lower()
 
     try:
         await db.commit()

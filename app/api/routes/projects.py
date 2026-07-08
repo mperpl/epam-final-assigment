@@ -129,6 +129,7 @@ async def remove_user_from_project(
     current_user: CURRENT_USER_ID,
     db: DB_SESSION,
 ):
-    return await remove_user_from_project_service(
+    await remove_user_from_project_service(
         project_id, current_user, target_user_id, db
     )
+    return {}

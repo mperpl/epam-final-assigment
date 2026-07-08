@@ -18,12 +18,12 @@ async def create_flush_project_member(
 
 
 async def get_project_member(
-    target_user_id: UUID, project_id: UUID, db: AsyncSession
+    user_id: UUID, project_id: UUID, db: AsyncSession
 ) -> ProjectMember:
     stmt = select(ProjectMember).where(
         and_(
             ProjectMember.project_id == project_id,
-            ProjectMember.user_id == target_user_id,
+            ProjectMember.user_id == user_id,
         )
     )
 

@@ -6,7 +6,6 @@ from valkey.asyncio import Valkey
 from app.core.exceptions import (
     AuthenticationError,
     AuthorizationError,
-    DatabaseIntegrityError,
     EntryNotFoundError,
 )
 from app.core.security import decode_jwt
@@ -15,19 +14,12 @@ from app.database.valkey import get_valkey_session
 from app.models.project_member import ProjectRole
 
 
-async def protect_owner_deletion(
-    current_user_id: UUID, target_user_id: UUID, project_id: UUID, db: AsyncSession
-):
-    member = await get_project_member(current_user_id, project_id, db)
-    if member.role != ProjectRole.OWNER:
-        raise AuthorizationError(
-            "Access denied. Only the project owner can alter member roles."
-        )
-
+def protect_owner_deletion(current_user_id: UUID, target_user_id: UUID) -> None:
     if current_user_id == target_user_id:
-        raise DatabaseIntegrityError(
+        raise AuthorizationError(
             "Safety conflict: You cannot modify your own ownership role."
         )
+    
 
 
 async def get_credentials_from_refresh_token(
@@ -49,14 +41,13 @@ async def get_credentials_from_refresh_token(
 
 async def user_role_in(
     project_id: UUID, user_id: UUID, roles: tuple[ProjectRole | None], db: AsyncSession
-) -> tuple[ProjectRole] | None:
+) -> bool:
     try:
         member = await get_project_member(user_id, project_id, db)
-        role = member.role
     except EntryNotFoundError:
-        role = None
-
-    if role in roles:
+        raise AuthorizationError("User has no access to this action.")
+    
+    if member.role in roles:
         return True
-
-    raise AuthorizationError("User has no access to this action")
+    
+    raise AuthorizationError("User has no access to this action.")

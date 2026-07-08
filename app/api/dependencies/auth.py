@@ -13,9 +13,7 @@ CREDENTIALS_EXCEPTION = AuthenticationError("Could not validate credentials.")
 
 
 def has_token(request: Request) -> bool:
-    return bool(
-        request.cookies.get("access_token") or request.cookies.get("refresh_token")
-    )
+    return bool(request.cookies.get("access_token"))
 
 
 def verify_is_anonymous(request: Request) -> None:
